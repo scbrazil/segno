@@ -1,0 +1,9 @@
+# dependencies
+node_modules
+node_modules/
+
+# bundle
+
+# misc
+.env
+package-lock.json
