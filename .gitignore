@@ -3,6 +3,10 @@ node_modules
 node_modules/
 
 # bundle
+dist/
+dist/**
+dist/bundle.json
+dist/index.html
 
 # misc
 .env

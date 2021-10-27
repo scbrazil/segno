@@ -1,5 +1,7 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 const axios = require('axios');
+const Instructor = require('../models/instructor');
 
 // Route description format. Use it.
 
@@ -8,14 +10,25 @@ const axios = require('axios');
 // @access  Private
 
 
+// TEST ROUTE
+router.get('/test', async (req, res) => {
+    try {
+        res.json('It made it to the routes');
+    } catch (err) {
+        res.status(500).json({ err });
+    }
+});
+
 // Routes
 
 // @desc    Retrieve all instructor' information (use only when necessary; resource heavy)
 // @route   GET /instructor/:all
 // @access  Private
-router.get('/instructor/:all', async (req, res) => {
+router.get('/all', async (req, res) => {
     try {
+        let allInstructors = await Instructor.find({});
 
+        res.status(200).json(allInstructors)
     } catch (error) {
         res.status(500).json({ error });
     }
@@ -24,9 +37,14 @@ router.get('/instructor/:all', async (req, res) => {
 // @desc    Retrieve all instructor names and IDs
 // @route   GET /instructor/limited
 // @access  Private
-router.get('/instructor/limited', async (req, res) => {
+router.get('/limited', async (req, res) => {
     try {
+        let allInstructors =
+            await Instructor
+                .find({})
+                .select('_id name');
 
+        res.status(200).json(allInstructors);
     } catch (error) {
         res.status(500).json({ error });
     }
@@ -35,9 +53,15 @@ router.get('/instructor/limited', async (req, res) => {
 // @desc    Retrieve single instructor information by name
 // @route   GET /instructor/name
 // @access  Private
-router.get('/instructor/name', async (req, res) => {
+router.get('/name', async (req, res) => {
+    // res.json('Got to instructor name route')
+    // res.json(req.body.name)
+    
     try {
+        let instructor = await Instructor.findOne({ name: req.body.name });
+        // let instructor = await Instructor.findOne({ name: "Sean Brazil" });
 
+        res.status(200).json(instructor);
     } catch (error) {
         res.status(500).json({ error });
     }
@@ -46,20 +70,30 @@ router.get('/instructor/name', async (req, res) => {
 // @desc    Retrieve single instructor information by ID
 // @route   GET /instructor/:id
 // @access  Private
-router.get('/instructor/:id', async (req, res) => {
+router.get('/id', async (req, res) => {
+    // res.json('wrong place')
     try {
+        const instructor = await Instructor.findById(req.params.id);
 
+        res.status(200).json(instructor);
     } catch (error) {
-        res.status(500).json({ error });
+        res.status(500).send({ error });
     }
 });
 
 // @desc    Retrieve instructor names and IDs by instruments
 // @route   GET /instructor/:instrument
 // @access  Private
-router.get('/instructor/:instrument', async (req, res) => {
+router.get('/instrument', async (req, res) => {
+    res.json('made it')
+    res.json(req.params.instrument)
     try {
+        let instructors =
+            await Instructor
+                .find({ instruments: 'tuba' })
+                .select('_id name');
 
+        res.status(200).json(instructors)
     } catch (error) {
         res.status(500).json({ error });
     }
@@ -156,12 +190,47 @@ router.get('/instructor/lessons-instrument', async (req, res) => {
 // @desc    Add instructor
 // @route   POST /instructor
 // @access  Private
-router.post('/instructor', async (req, res) => {
+router.post('/new-instructor', async (req, res) => {
+    // console.log('It made it to the route: ', req.body);
+    let instructorName = `${req.body.firstName} ${req.body.lastName}`;
+    
+    // Organize new instructor object for DB document.
+    let newInstructor = new Instructor({
+        name: instructorName,
+        instruments: req.body.instruments,
+        contact: {
+            phone: req.body.phone,
+            email: req.body.email,
+            address: {
+                street: req.body.street,
+                city: req.body.city,
+                state: req.body.state,
+                zipcode: req.body.zipcode
+            }
+        }
+    });
+
+    // res.send(instructorName)
+
     try {
+        // Check if instructor already exists in the database.
+        await Instructor.countDocuments({ name: instructorName }, async (err, count) => {
+            if (err) res.send(err);
+            if (count < 1) {
+                await newInstructor.save(function (err) {
+                    if (err) res.status(500).json(err);
+                    res.status(200).json('New instructor added.');
+                });
+            } else {
+                res.json('Instructor already exists.');
+            }
+        });
 
     } catch (error) {
         res.status(500).json({ error });
     }
+
+  
 });
 
 // @desc    Update instructor information

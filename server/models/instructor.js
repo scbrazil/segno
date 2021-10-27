@@ -11,7 +11,7 @@ const InstructorSchema = new mongoose.Schema(
             required: true,
         },
         instruments: {
-            type: Array,
+            type: [String],
             required: true,
         },
         students: {
@@ -40,7 +40,7 @@ const InstructorSchema = new mongoose.Schema(
                     type: String,
                     required: true,
                 },
-                zipCode: {
+                zipcode: {
                     type: String,
                     required: true,
                 },
@@ -54,4 +54,4 @@ const InstructorSchema = new mongoose.Schema(
     { strict: false }
 );
 
-module.exports = Instructor = mongoose.model('Instructors', InstructorSchema);
+module.exports = Instructor = mongoose.model('instructors', InstructorSchema);
